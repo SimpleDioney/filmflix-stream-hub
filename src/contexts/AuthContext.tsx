@@ -4,14 +4,18 @@ import { useToast } from '@/hooks/use-toast';
 interface User {
   id: number;
   username: string;
+  email: string;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
-  register: (username: string, password: string) => Promise<boolean>;
+  isAdmin: boolean;
+  login: (login: string, password: string) => Promise<boolean>;
+  register: (username: string, email: string, password: string) => Promise<boolean>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -27,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const isAuthenticated = !!token && !!user;
+  const isAdmin = !!user && user.email === 'dioneygabriel20@gmail.com';
 
   useEffect(() => {
     // Verificar se há token salvo no localStorage
@@ -41,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (login: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -49,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ login, password }),
       });
 
       if (response.ok) {
@@ -88,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (username: string, password: string): Promise<boolean> => {
+  const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -96,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, email, password }),
       });
 
       if (response.ok) {
@@ -138,13 +143,92 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Email enviado",
+          description: "Se houver uma conta associada a este e-mail, um link de redefinição de senha foi enviado.",
+        });
+        return true;
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Erro",
+          description: error.message || "Erro ao enviar email de recuperação",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, newPassword }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Senha redefinida com sucesso!",
+          description: "Você pode fazer login com sua nova senha",
+        });
+        return true;
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Erro",
+          description: error.message || "O link para redefinição de senha é inválido ou expirou. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       token,
       isAuthenticated,
+      isAdmin,
       login,
       register,
+      forgotPassword,
+      resetPassword,
       logout,
       loading,
     }}>

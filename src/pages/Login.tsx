@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Logo } from '@/components/ui/logo';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
 const Login = () => {
   const { isAuthenticated, login, register, loading } = useAuth();
@@ -17,13 +17,14 @@ const Login = () => {
   
   // Login form state
   const [loginData, setLoginData] = useState({
-    username: '',
+    login: '',
     password: '',
   });
   
   // Register form state
   const [registerData, setRegisterData] = useState({
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
   });
@@ -35,7 +36,7 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(loginData.username, loginData.password);
+    const success = await login(loginData.login, loginData.password);
     if (success) {
       // Navigation will happen automatically due to auth state change
     }
@@ -48,10 +49,10 @@ const Login = () => {
       return;
     }
     
-    const success = await register(registerData.username, registerData.password);
+    const success = await register(registerData.username, registerData.email, registerData.password);
     if (success) {
       setActiveTab('login');
-      setRegisterData({ username: '', password: '', confirmPassword: '' });
+      setRegisterData({ username: '', email: '', password: '', confirmPassword: '' });
     }
   };
 
@@ -91,16 +92,16 @@ const Login = () => {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-username">Usuário</Label>
+                    <Label htmlFor="login-username">Usuário ou E-mail</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="login-username"
                         type="text"
-                        placeholder="Seu nome de usuário"
+                        placeholder="Nome de usuário ou e-mail"
                         className="pl-10"
-                        value={loginData.username}
-                        onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                        value={loginData.login}
+                        onChange={(e) => setLoginData({ ...loginData, login: e.target.value })}
                         required
                       />
                     </div>
@@ -138,6 +139,15 @@ const Login = () => {
                   >
                     {loading ? 'Entrando...' : 'Entrar'}
                   </Button>
+
+                  <div className="text-center">
+                    <Link 
+                      to="/forgot-password" 
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Esqueci a senha?
+                    </Link>
+                  </div>
                 </form>
               </TabsContent>
               
@@ -145,9 +155,9 @@ const Login = () => {
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="register-username">Usuário</Label>
+                    <Label htmlFor="register-username">Nome de usuário</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="register-username"
                         type="text"
@@ -155,6 +165,22 @@ const Login = () => {
                         className="pl-10"
                         value={registerData.username}
                         onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-email">E-mail</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="register-email"
+                        type="email"
+                        placeholder="Seu e-mail"
+                        className="pl-10"
+                        value={registerData.email}
+                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                         required
                       />
                     </div>
@@ -212,6 +238,15 @@ const Login = () => {
                   >
                     {loading ? 'Criando conta...' : 'Criar conta'}
                   </Button>
+
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-sm">
+                      Ou{' '}
+                      <Link to="/register" className="text-primary hover:underline">
+                        criar conta em página separada
+                      </Link>
+                    </p>
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>
