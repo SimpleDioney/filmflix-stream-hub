@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useCallback, useMemo } from 'react';
 
-const API_BASE_URL = 'https://vps60023.publiccloud.com.br/movie/'; // Garanta que esta é a porta correta
+const API_BASE_URL = 'https://vps60023.publiccloud.com.br/movie'; // Garanta que esta é a porta correta
 
 export const useApi = () => {
   const { token } = useAuth();
