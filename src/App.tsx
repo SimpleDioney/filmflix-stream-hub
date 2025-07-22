@@ -18,7 +18,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <BrowserRouter basename="/filmes">
+  <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
